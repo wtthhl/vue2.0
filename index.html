@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="maximum-scale=1, minimum-scale=1, user-scalable=no, initial-scale=1, width=device-width">
+	<title>团购网站</title>
+
+    <link rel="stylesheet" type="text/css" href="/static/pack/all_83e3031.css" />
+</head>
+<body>
+	<div id="ickt">
+	<div class="carousel-wrap" id="carousel"  v-show="view === 'home'">
+    <!-- // 轮播图列表 -->
+    <transition-group tag="ul" class='slide-ul' name="list">
+      <li v-for="(list,index) in slideList" :key="index" v-show="index===currentIndex" @mouseenter="stop" @mouseleave="go">
+        <a :href="list.clickUrl" >
+          <img :src="'img/banner/' + list.image" :alt="list.desc">
+        </a>
+      </li>
+    </transition-group>
+    <!-- // 轮播图位置指示 -->
+    <div class="carousel-items">
+      <span v-for="(item,index) in slideList" :class="{'active':index===currentIndex}" @mouseenter="change(index)"></span>
+    </div>
+</div>
+		<div class="header" v-show="view==='home'||view==='list'">
+			<div class="go-back" @click="goback()"><span class="arrow"><span class="arrow green"></span></span>
+			</div>
+			<div class="search">
+			<input type="text" v-model="searchValue" @keydown.enter="showSearchResult" placeholder="请输入搜索关键词">
+			</div>
+		</div>
+	<div class="footer" v-show="view">
+		<span><a href="#/home">首页</a></span>
+		<span><a href="#/dingdan">订单</a></span>
+		<span><a href="#/guide">指南</a></span>
+		<span><a href="#/login">登录</a></span>
+	</div>
+	
+		<!-- 使用组件 -->
+		<!-- <home></home>
+		<list></list>
+		<detail></detail> -->
+		<!-- 用一个元素来表示他们 -->
+		<component :is="view" :route="route" :search-query="query"></component>
+	</div>
+
+	<!--定义首页模板 -->
+	<template id="tpl_home">
+		<div class="home">
+			<!-- 分类列表 -->
+			<ul class="types clearfix">
+			<li v-for="item in icons">
+				<a :href="'#/list/type/' + item.id">
+					<img :src="'img/icon/' + item.img" alt="">
+					<p>{{item.title}}</p>
+				</a>
+			</li>
+		</ul>
+		<!-- 广告列表 -->
+		<ul class="ads clearfix">
+			<li v-for="(item, index) in ad">
+				<a :href="'#/detail/' + item.id">
+					<h3 :class="'color-' + (index + 1)">{{item.title}}</h3>
+					<p>{{item.description}}</p>
+					<img :src="'img/ad/' + item.url" alt="">
+				</a>
+			</li>
+		</ul>
+		<!-- 店铺滚动 -->
+		<p id="p1">为你甄选</p>
+		<div class="box">
+		<ul id="unit" name="demo" class="canrousel">	
+			<li v-for="(item,index) in imgs" :key="index" v-show="index===currentIndex">
+				<img :src="'img/mingxing/'+item.img" alt=""><img :src="'img/mingxing/'+item.img1" alt=""><img :src="'img/mingxing/'+item.img2" alt="">
+			</li>
+		</ul>
+		</div>
+		<!-- 商品列表 -->
+		<div class="guess">
+			<h2 class="guess-tittle">猜你喜欢</h2>
+			<ul class="items">
+				<li v-for="item in list">
+					<a :href="'#detail/' + item.id">
+						<img :src="'img/list/' + item.img" alt="">
+						<div class="content">
+							<h3>{{item.title}}</h3>
+							<p>
+								<span class="price">{{item.price}}元</span>
+								<span class="origin-price">门市价：{{item.originPrice}}元</span>
+								<span class="sales">销量{{item.sales}}</span>
+							</p>
+						</div>
+					</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	</template>
+	<!-- 列表页面 -->
+	<template id="tpl_list">
+		<div class="list">
+			<ul class="order clearfix">
+				<li v-for="item in orders" @click="listOrder(item.id)">
+					<span :class="{'active':isshow == item.id}">{{item.text}}</span>
+					<span class="arrow"></span>
+				</li>
+			</ul>
+			<ul class="items">
+			<li v-for="item in listFilterResult">
+				<a :href="'#/detail/' + item.id">
+					<img :src="'img/list/' + item.img" alt="">
+					<div class="content">
+						<h3>{{item.title}}</h3>
+						<p>
+							<span class="price">{{item.price}}元</span>
+							<span class="price-origin">门市价：{{item.originPrice}}元</span>
+							<span class="sales">销量{{item.sales}}</span>
+						</p>
+					</div>
+				</a>
+			</li>
+		</ul>
+		<div class="load-more" v-if="others.length" @click="showOthers()">
+			<span class="text">查看其它{{others.length}}条团购</span>
+			<span class="arrow">
+				<span class="arrow white"></span>
+			</span>
+		</div>
+		</div>
+		</div>
+	</template>
+	<!-- 大图页 -->
+	<template id="tpl_detail">
+	<div class="detail">
+		<div class="img-part">
+			<img v-if="data.src" :src="'img/item/' + data.src" alt="">
+			<h1>{{data.title}}</h1>
+			<p>{{data.description}}</p>
+		</div>
+		<div class="price-part">
+			<span class="price"><strong>{{data.price}}</strong>元</span>
+			<span class="origin-price">门市价{{data.originPrice}}元</span>
+			<span class="buy">立即购买</span>
+		</div>
+		<ul class="sales-part clearfix">
+			<li>支持立即退货</li>
+			<li>支持随时退货</li>
+			<li>销量{{data.sales}}</li>
+		</ul>
+		<div class="module store-part">
+			<div class="module-header">店家信息</div>
+			<div class="module-body">
+				<p>{{data.storeName}}</p>
+				<p>{{data.storeAddress}}</p>
+			</div>
+			<div class="module-footer">查看{{data.storeNum}}家分店</div>
+		</div>
+		<div class="module buy-part">
+			<div class="module-header">购买须知</div>
+			<div class="module-body">
+				<ul>
+					<li>
+						<h3>有效日期</h3>
+						<p>{{data.validateTime}}</p>
+					</li>
+					<li>
+						<h3>使用时间</h3>
+						<p>{{data.useTime}}</p>
+					</li>
+					<li>
+						<h3>使用规则</h3>
+						<p v-for="item in data.rules">{{item}}</p>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</template>
+<!-- 登录页面 -->
+<template id="login_tpl">
+	<div class="login">
+		<div class="go-back" @click="goback()"><span class="arrow"><span class="arrow green"></span></span><h2>登录</h2></div>
+		<div id="login" class="top">
+			<span :class={choose:ischoose1} @click="showClass1()">账号密码登录</span><span :class={choose:ischoose2} @click="showClass2()">手机号快捷登录</span>
+		</div>
+		<div class="content" v-if=ischoose1>
+			<p><label for="tel">账户</label><input type="text" placeholder="用户名邮箱/手机号" id = "tel"></p>
+			<p><label for="password">密码</label><input type="text" placeholder="请输入密码" id="password"></p>
+			<input type="submit" class="submit" value="登录">
+			<div class="bottom"><span>30秒免费注册</span><span>忘记密码</span></div>
+		</div>
+		<div class="content" v-else=ischoose1>
+			<p class="title">国家地区</p>
+			<p><label for="tel">手机号</label><input type="text" placeholder="请输入手机号" id = "tel"></p>
+			<p><label for="password">校验</label><input type="text" placeholder="请输入校验码" id="password"><button @click="jiaoyan()">获取验证码</button></p>
+			<input type="submit" class="submit" value="登录">
+			<div class="bottom"><span>{{num}}秒免费注册</span></div>
+		</div>			
+	</div>
+</template>
+<!-- 订单 -->
+<template id="dingdan_tpl">
+	<div class="img">
+		<p @click="goback()">返回</p>
+	<a href="#/home"><img class="dingdan" src="/img/dingdan.jpg" alt=""></a>
+	</div>
+</template>
+<!-- 指南 -->
+<template id="guide_tpl">
+	<div class="guidetop">
+		<h1>指南</h1>
+		<p>新生活方式的倡导者，带你畅想品质吃喝玩乐</p>
+		<div class="home">
+		<div class="swiper-container">
+			<ul class="swiper-wrapper">
+				<li v-for="item in imglist" class="swiper-slide"><img :src="'img/banner/' + item.url" alt="" style="width: 100%;">
+			</ul>
+			<div class="swiper-pagination"></div>
+		</div>	
+	</div>
+	<ul class="hot">
+			<h4>全城热店</h2>
+			<li v-for="item in guideimg">
+				<img :src="'img/gulde/'+item.img" alt="">
+				<p>{{item.title}}</p>
+			</li>
+		</ul>
+</div>
+</template>
+
+<script type="text/javascript" src="/static/pack/lib_7c961cf.js"></script>
+<script type="text/javascript" src="/static/pack/module_de2ec24.js"></script>
+<script type="text/javascript">
+	// 引入入口文件
+	require('module/router/router')
+</script>
+</body>
+</html>

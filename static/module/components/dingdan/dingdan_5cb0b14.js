@@ -1,0 +1,1 @@
+define("module/components/dingdan/dingdan",function(n,e,d){var o=Vue.extend({template:"#dingdan_tpl",methods:{goback:function(){history.go(-1)}}});d.exports=o});

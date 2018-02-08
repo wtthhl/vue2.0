@@ -1,0 +1,1 @@
+define("module/components/detail/detail",function(t,a,e){var n=t("module/utils/utils"),d=Vue.extend({template:"#tpl_detail",data:function(){return{data:[]}},mounted:function(){var t=this,a=this.$parent.route[0];n.ajax("data/product.json?id="+a,function(e){e&&0===e.errno&&(t.data=e.data[a-1])})}});e.exports=d});
